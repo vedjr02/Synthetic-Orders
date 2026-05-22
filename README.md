@@ -90,7 +90,9 @@ Dashboard: http://localhost:3000
 |--------|------|-------------|
 | `GET` | `/api/network` | Thane OSMnx nodes as GeoJSON |
 | `POST` | `/api/predict_surge` | ETA, surge multiplier, SLA risk |
-| `GET` | `/api/metrics` | Active orders, fleet utilization, avg surge |
+| `GET` | `/api/metrics` | Live ops KPIs — active orders, fleet utilization |
+| `GET` | `/api/analytics` | Full BI bundle — GMV, trends, zones, leaderboard |
+| `GET` | `/api/analytics/overview` | Business KPI summary |
 | `GET` | `/api/dark-stores` | Dark store hub coordinates |
 | `GET` | `/api/orders` | Sample delivery points for map |
 
