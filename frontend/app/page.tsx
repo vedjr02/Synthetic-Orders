@@ -1,16 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import DashboardMap from "@/components/DashboardMap";
 import ControlPanel from "@/components/ControlPanel";
 import MetricsPanel from "@/components/MetricsPanel";
+import ViewTabs from "@/components/ViewTabs";
 import {
+  fetchAnalytics,
   fetchBounds,
   fetchDarkStores,
   fetchMetrics,
   fetchOrders,
   predictSurge,
   fetchSimulationMeta,
+  type AnalyticsBundle,
   type CityBounds,
   type SimulationMeta,
   type DarkStore,
@@ -20,11 +24,15 @@ import {
   type Weather,
 } from "@/lib/api";
 
+type View = "operations" | "analytics";
+
 export default function HomePage() {
+  const [view, setView] = useState<View>("operations");
   const [weather, setWeather] = useState<Weather>("Clear");
   const [bounds, setBounds] = useState<CityBounds | null>(null);
   const [simulation, setSimulation] = useState<SimulationMeta | null>(null);
   const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsBundle | null>(null);
   const [orders, setOrders] = useState<OrderPoint[]>([]);
   const [stores, setStores] = useState<DarkStore[]>([]);
   const [prediction, setPrediction] = useState<PredictSurgeResult | null>(null);
@@ -35,18 +43,20 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     try {
-      const [m, o, s, b, sim] = await Promise.all([
+      const [m, o, s, b, sim, a] = await Promise.all([
         fetchMetrics(w),
         fetchOrders(w),
         fetchDarkStores(),
         fetchBounds(),
         fetchSimulationMeta(),
+        fetchAnalytics(w),
       ]);
       setMetrics(m);
       setOrders(o);
       setStores(s);
       setBounds(b);
       setSimulation(sim);
+      setAnalytics(a);
 
       if (s.length >= 2) {
         const origin = s[0];
@@ -79,69 +89,32 @@ export default function HomePage() {
   }, [orders, prediction]);
 
   return (
-    <main
-      style={{
-        position: "relative",
-        width: "100vw",
-        height: "100vh",
-        overflow: "hidden",
-      }}
-    >
-      <DashboardMap
-        bounds={bounds}
-        orders={surgeByPoint}
-        stores={stores}
-        weather={weather}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-          top: 20,
-          left: 20,
-          zIndex: 10,
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
-          maxWidth: 360,
-        }}
-      >
-        <div className="glass-strong" style={{ padding: "20px 24px" }}>
-          <div className="label" style={{ marginBottom: 4 }}>
-            Thane Q-Commerce
-          </div>
-          <h1 style={{ fontSize: "1.35rem", fontWeight: 700, letterSpacing: "-0.02em" }}>
-            Surge & SLA Engine
-          </h1>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: 6 }}>
-            10-min grocery · whole Thane city · monsoon surge sim
-          </p>
+    <main className={view === "analytics" ? "page-analytics" : "page-operations"}>
+      <header className="app-header glass-strong">
+        <div>
+          <div className="label">Thane Q-Commerce</div>
+          <h1>Surge & SLA Engine</h1>
         </div>
+        <ViewTabs active={view} onChange={setView} />
+        <ControlPanel weather={weather} onWeatherChange={setWeather} loading={loading} compact />
+      </header>
 
-        <ControlPanel weather={weather} onWeatherChange={setWeather} loading={loading} />
-        <MetricsPanel
-          metrics={metrics}
-          simulation={simulation}
-          prediction={prediction}
-          loading={loading}
-          error={error}
-        />
-      </div>
-
-      <div
-        className="glass"
-        style={{
-          position: "absolute",
-          bottom: 20,
-          right: 20,
-          zIndex: 10,
-          padding: "12px 16px",
-          fontSize: "0.75rem",
-          color: "var(--text-muted)",
-        }}
-      >
-        Basemap © CARTO · OSM contributors · No paid APIs
-      </div>
+      {view === "operations" ? (
+        <>
+          <DashboardMap bounds={bounds} orders={surgeByPoint} stores={stores} weather={weather} />
+          <aside className="ops-sidebar">
+            <MetricsPanel
+              metrics={metrics}
+              simulation={simulation}
+              prediction={prediction}
+              loading={loading}
+              error={error}
+            />
+          </aside>
+        </>
+      ) : (
+        <AnalyticsDashboard data={analytics} loading={loading} />
+      )}
     </main>
   );
 }
