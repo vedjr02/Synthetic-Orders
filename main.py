@@ -20,6 +20,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+import analytics_service as analytics
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("thane-surge")
 
@@ -360,3 +362,28 @@ def get_metrics(weather: str = "Clear"):
         "dark_store_count": len(state.dark_stores),
         "total_orders_in_dataset": len(df),
     }
+
+
+@app.get("/api/analytics")
+def get_analytics(weather: Optional[str] = None):
+    """Full business analytics bundle for the BI dashboard."""
+    _ensure_ready()
+    df = state.orders_df
+    w = weather if weather in WEATHER_SEVERITY else None
+    return {
+        "overview": analytics.overview(df, w),
+        "hourly_demand": analytics.hourly_demand(df, w),
+        "daily_trend": analytics.daily_trend(df),
+        "zone_performance": analytics.zone_performance(df, state.dark_stores),
+        "platform_split": analytics.platform_split(df),
+        "weather_impact": analytics.weather_impact(df),
+        "store_leaderboard": analytics.store_leaderboard(df, state.dark_stores),
+        "eta_distribution": analytics.eta_distribution(df),
+    }
+
+
+@app.get("/api/analytics/overview")
+def get_analytics_overview(weather: Optional[str] = None):
+    _ensure_ready()
+    w = weather if weather in WEATHER_SEVERITY else None
+    return analytics.overview(state.orders_df, w)
