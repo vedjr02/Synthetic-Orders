@@ -70,6 +70,95 @@ export interface PredictSurgeResult {
   weather_factor: number;
 }
 
+export interface AnalyticsOverview {
+  total_orders: number;
+  orders_per_day: number;
+  gmv_inr: number;
+  gmv_per_day_inr: number;
+  avg_order_value_inr: number;
+  avg_delivery_fee_inr: number;
+  avg_surge_multiplier: number;
+  sla_compliance_pct: number;
+  avg_eta_minutes: number;
+  p95_eta_minutes: number;
+}
+
+export interface HourlyDemandPoint {
+  hour: number;
+  orders: number;
+  avg_eta_min: number;
+  sla_breach_pct: number;
+  gmv_inr: number;
+}
+
+export interface DailyTrendPoint {
+  date: string;
+  orders: number;
+  gmv_inr: number;
+  sla_breach_pct: number;
+  avg_eta_min: number;
+}
+
+export interface ZonePerformance {
+  zone: string;
+  orders: number;
+  gmv_inr: number;
+  avg_eta_min: number;
+  sla_breach_pct: number;
+  avg_order_value_inr: number;
+}
+
+export interface PlatformSplit {
+  platform: string;
+  orders: number;
+  share_pct: number;
+  gmv_inr: number;
+  sla_breach_pct: number;
+}
+
+export interface WeatherImpact {
+  weather: string;
+  orders: number;
+  avg_eta_min: number;
+  sla_breach_pct: number;
+  avg_surge: number;
+  gmv_inr: number;
+}
+
+export interface StoreLeaderboardRow {
+  store_id: number;
+  name: string;
+  zone: string;
+  platform: string;
+  orders: number;
+  gmv_inr: number;
+  avg_eta_min: number;
+  sla_breach_pct: number;
+}
+
+export interface EtaBucket {
+  bucket: string;
+  count: number;
+}
+
+export interface AnalyticsBundle {
+  overview: AnalyticsOverview;
+  hourly_demand: HourlyDemandPoint[];
+  daily_trend: DailyTrendPoint[];
+  zone_performance: ZonePerformance[];
+  platform_split: PlatformSplit[];
+  weather_impact: WeatherImpact[];
+  store_leaderboard: StoreLeaderboardRow[];
+  eta_distribution: EtaBucket[];
+}
+
+export async function fetchAnalytics(weather?: Weather): Promise<AnalyticsBundle> {
+  const q = weather ? `?weather=${encodeURIComponent(weather)}` : "";
+  const res = await fetch(`${API_BASE}/api/analytics${q}`);
+  if (!res.ok) throw new Error("Failed to load analytics");
+  return res.json();
+}
+
 export async function fetchSimulationMeta(): Promise<SimulationMeta> {
   const res = await fetch(`${API_BASE}/api/simulation-meta`);
   if (!res.ok) throw new Error("Failed to load simulation meta");
