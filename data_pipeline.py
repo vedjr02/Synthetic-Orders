@@ -15,7 +15,19 @@ import numpy as np
 import osmnx as ox
 import pandas as pd
 
-from config.thane import THANE_CITY_BBOX, THANE_STORE_ZONES, zone_predicate
+from config.thane import THANE_CITY_BBOX, node_in_bbox
+from config.thane_reality import (
+    CITY_FLEET_BASE,
+    DAILY_ORDERS_TARGET,
+    DELIVERY_RADIUS_M,
+    HOURLY_DEMAND_WEIGHT,
+    NUM_DARK_STORES_TARGET,
+    PLATFORM_MIX,
+    RIDERS_PER_STORE_BASE,
+    SIMULATION_DAYS,
+    THANE_NEIGHBORHOODS,
+    TOTAL_ORDERS,
+)
 
 # ---------------------------------------------------------------------------
 # Config
@@ -26,10 +38,9 @@ MODELS_DIR = ROOT / "models"
 CACHE_DIR = ROOT / "cache"
 
 PLACE = "Thane city, Maharashtra, India"  # label only; graph uses THANE_CITY_BBOX
-NUM_DARK_STORES = 4
-NUM_ORDERS = 10_000
-DAYS = 14
-DELIVERY_RADIUS_M = 3_000
+NUM_DARK_STORES = NUM_DARK_STORES_TARGET
+NUM_ORDERS = TOTAL_ORDERS
+DAYS = SIMULATION_DAYS
 AVG_SPEED_KMH = 22.0  # Mumbai urban average
 RANDOM_SEED = 42
 
@@ -56,43 +67,84 @@ def download_graph() -> nx.MultiDiGraph:
     return G
 
 
-def pick_dark_stores(G: nx.MultiDiGraph, k: int = NUM_DARK_STORES) -> list[tuple[int, str]]:
-    """Place one dark store per city quadrant for full Thane coverage."""
-    b = THANE_CITY_BBOX
-    mid_lat = (b["north"] + b["south"]) / 2
-    mid_lon = (b["east"] + b["west"]) / 2
+def pick_dark_stores(G: nx.MultiDiGraph, k: int = NUM_DARK_STORES) -> list[tuple[int, str, str]]:
+    """Place dark stores per neighbourhood using QuickCommerceMap density (37 in Thane)."""
     degrees = dict(G.degree())
+    rng = random.Random(RANDOM_SEED)
+    selected: list[tuple[int, str, str]] = []
+    used_nodes: set[int] = set()
+    platform_cycle: list[str] = []
+    for plat, frac in PLATFORM_MIX:
+        platform_cycle.extend([plat] * int(round(frac * k)))
 
-    selected: list[tuple[int, str]] = []
-    for zone in THANE_STORE_ZONES[:k]:
+    for hood in THANE_NEIGHBORHOODS:
         candidates = [
             n
             for n in G.nodes
-            if zone_predicate(zone["pred"], G.nodes[n]["y"], G.nodes[n]["x"], mid_lat, mid_lon)
+            if n not in used_nodes
+            and node_in_bbox(
+                G.nodes[n]["y"],
+                G.nodes[n]["x"],
+                hood["south"],
+                hood["north"],
+                hood["west"],
+                hood["east"],
+            )
         ]
         if not candidates:
-            print(f"  Warning: no nodes in zone {zone['name']}, skipping")
+            print(f"  Warning: no graph nodes in {hood['name']}")
             continue
-        # Prefer well-connected nodes near the zone centroid
-        zlats = [G.nodes[n]["y"] for n in candidates]
-        zlons = [G.nodes[n]["x"] for n in candidates]
-        z_cent_lat, z_cent_lon = float(np.mean(zlats)), float(np.mean(zlons))
 
-        def score(node: int) -> float:
-            y, x = G.nodes[node]["y"], G.nodes[node]["x"]
-            dist = ox.distance.great_circle(y, x, z_cent_lat, z_cent_lon)
-            return degrees.get(node, 0) - dist / 500.0
+        hood_lat = float(np.mean([G.nodes[n]["y"] for n in candidates]))
+        hood_lon = float(np.mean([G.nodes[n]["x"] for n in candidates]))
 
-        best = max(candidates, key=score)
-        selected.append((best, zone["name"]))
+        for i in range(hood["count"]):
+            if len(selected) >= k:
+                break
+
+            def score(node: int) -> float:
+                y, x = G.nodes[node]["y"], G.nodes[node]["x"]
+                dist = ox.distance.great_circle(y, x, hood_lat, hood_lon)
+                separation = min(
+                    (
+                        ox.distance.great_circle(y, x, G.nodes[s]["y"], G.nodes[s]["x"])
+                        for s in used_nodes
+                    ),
+                    default=9999,
+                )
+                return degrees.get(node, 0) - dist / 400.0 + min(separation, 1200) / 600.0
+
+            ranked = sorted(candidates, key=score, reverse=True)
+            picked = ranked[0]
+            for node in ranked:
+                if all(
+                    ox.distance.great_circle(
+                        G.nodes[node]["y"],
+                        G.nodes[node]["x"],
+                        G.nodes[s]["y"],
+                        G.nodes[s]["x"],
+                    )
+                    > 350
+                    for s in used_nodes
+                ):
+                    picked = node
+                    break
+
+            platform = platform_cycle[len(selected) % len(platform_cycle)] if platform_cycle else "Blinkit"
+            label = f"{platform} · {hood['name']}"
+            selected.append((picked, label, platform))
+            used_nodes.add(picked)
+            candidates = [n for n in candidates if n != picked]
 
     while len(selected) < k:
-        remaining = [n for n in G.nodes if n not in {s[0] for s in selected}]
+        remaining = [n for n in G.nodes if n not in used_nodes]
         if not remaining:
             break
         fallback = max(remaining, key=lambda n: degrees.get(n, 0))
-        selected.append((fallback, f"Dark Store {len(selected) + 1}"))
+        selected.append((fallback, f"Dark Store {len(selected) + 1}", "Blinkit"))
+        used_nodes.add(fallback)
 
+    rng.shuffle(selected)
     return selected[:k]
 
 
@@ -121,13 +173,14 @@ def shortest_path_metrics(G: nx.MultiDiGraph, origin: int, dest: int) -> tuple[f
 
 
 def simulate_active_riders(hour: int, day_of_week: int, weather: str) -> int:
-    """Synthetic fleet availability (lower during peak demand / bad weather)."""
-    base = 18
-    peak = 1.0 + 0.35 * np.sin((hour - 8) * np.pi / 12)  # lunch + dinner peaks
-    weekend = 1.12 if day_of_week >= 5 else 1.0
+    """Active riders attached to one dark store (~14 baseline, peaks with demand)."""
+    base = RIDERS_PER_STORE_BASE
+    hour_factor = HOURLY_DEMAND_WEIGHT[hour] / np.mean(HOURLY_DEMAND_WEIGHT)
+    peak = 0.80 + 0.35 * hour_factor
+    weekend = 1.08 if day_of_week >= 5 else 1.0
     weather_penalty = {"Clear": 1.0, "Rain": 0.88, "Heavy Rain": 0.72}[weather]
     count = int(base * peak * weekend * weather_penalty + np.random.normal(0, 2))
-    return max(5, min(45, count))
+    return max(6, min(28, count))
 
 
 def simulate_actual_eta(
@@ -155,9 +208,10 @@ def export_network_geojson(G: nx.MultiDiGraph, path: Path) -> None:
     print(f"Saved network GeoJSON → {path}")
 
 
-def export_dark_stores(G: nx.MultiDiGraph, store_entries: list[tuple[int, str]], path: Path) -> None:
+def export_dark_stores(G: nx.MultiDiGraph, store_entries: list[tuple[int, str, str]], path: Path) -> None:
     stores = []
-    for idx, (node, name) in enumerate(store_entries, start=1):
+    for idx, (node, name, platform) in enumerate(store_entries, start=1):
+        zone = name.split(" · ", 1)[-1] if " · " in name else name
         stores.append(
             {
                 "dark_store_id": idx,
@@ -165,11 +219,30 @@ def export_dark_stores(G: nx.MultiDiGraph, store_entries: list[tuple[int, str]],
                 "lat": float(G.nodes[node]["y"]),
                 "lon": float(G.nodes[node]["x"]),
                 "name": name,
-                "zone": name,
+                "zone": zone,
+                "platform": platform,
             }
         )
     path.write_text(json.dumps(stores, indent=2))
-    print(f"Saved dark stores → {path}")
+    print(f"Saved {len(stores)} dark stores → {path}")
+
+
+def export_simulation_meta(path: Path, store_count: int, order_count: int) -> None:
+    meta = {
+        "research_basis": "QuickCommerceMap Thane 37 stores; ~580 orders/store/day",
+        "sources": [
+            "https://quickcommercemap.com/cities/thane",
+            "https://www.moneycontrol.com/news/business/startup/blinkit-zepto-and-swiggy-instamart-scale-to-over-4-million-daily-orders-in-march-more-than-double-yoy-13012435.html",
+        ],
+        "num_dark_stores": store_count,
+        "daily_orders_target": DAILY_ORDERS_TARGET,
+        "simulation_days": DAYS,
+        "total_orders_generated": order_count,
+        "city_fleet_riders_peak": CITY_FLEET_BASE,
+        "platforms": {"Blinkit": 22, "Swiggy Instamart": 15},
+    }
+    path.write_text(json.dumps(meta, indent=2))
+    print(f"Saved simulation meta → {path}")
 
 
 def export_city_bounds(path: Path) -> None:
@@ -185,24 +258,46 @@ def export_city_bounds(path: Path) -> None:
     print(f"Saved city bounds → {path}")
 
 
-def generate_orders(G: nx.MultiDiGraph, store_entries: list[tuple[int, str]]) -> pd.DataFrame:
+def generate_orders(G: nx.MultiDiGraph, store_entries: list[tuple[int, str, str]]) -> pd.DataFrame:
     rng = np.random.default_rng(RANDOM_SEED)
-    start_date = datetime(2025, 6, 1, 6, 0, 0)
+    start_date = datetime(2025, 6, 1, 0, 0, 0)
 
-    store_nodes = {i + 1: nid for i, (nid, _) in enumerate(store_entries)}
+    store_nodes = {i + 1: nid for i, (nid, _, _) in enumerate(store_entries)}
+    store_platforms = {i + 1: plat for i, (_, _, plat) in enumerate(store_entries)}
+    store_weights = np.array([1.0] * len(store_entries)) / len(store_entries)
+
     delivery_pools = {
         sid: nodes_within_radius(G, nid, DELIVERY_RADIUS_M) for sid, nid in store_nodes.items()
     }
 
+    # Realistic timestamps: hourly demand curve × 14 days
+    hour_weights = np.array(HOURLY_DEMAND_WEIGHT, dtype=float)
+    hour_weights /= hour_weights.sum()
+    total_minutes = DAYS * 24 * 60
+    minute_offsets = rng.integers(0, total_minutes, size=NUM_ORDERS)
+    hours = (minute_offsets // 60) % 24
+    # Resample hours to match demand curve
+    target_hours = rng.choice(24, size=NUM_ORDERS, p=hour_weights)
+    day_offsets = minute_offsets // (24 * 60)
+    minute_in_day = rng.integers(0, 60, size=NUM_ORDERS)
+    timestamps = [
+        start_date + timedelta(days=int(d), hours=int(h), minutes=int(m))
+        for d, h, m in zip(day_offsets, target_hours, minute_in_day)
+    ]
+
+    store_ids = rng.choice(
+        list(store_nodes.keys()),
+        size=NUM_ORDERS,
+        p=store_weights,
+    )
+
     rows: list[dict] = []
     for i in range(NUM_ORDERS):
-        order_id = f"THN-{i + 1:05d}"
-        offset_minutes = int(rng.integers(0, DAYS * 24 * 60))
-        ts = start_date + timedelta(minutes=int(offset_minutes))
-        store_id = int(rng.integers(1, NUM_DARK_STORES + 1))
+        store_id = int(store_ids[i])
         pool = delivery_pools[store_id]
         delivery_node = int(rng.choice(pool))
         origin_node = store_nodes[store_id]
+        ts = timestamps[i]
 
         distance_m, base_time_min = shortest_path_metrics(G, origin_node, delivery_node)
         weather = str(rng.choice(WEATHER_OPTIONS, p=WEATHER_WEIGHTS))
@@ -216,9 +311,10 @@ def generate_orders(G: nx.MultiDiGraph, store_entries: list[tuple[int, str]]) ->
 
         rows.append(
             {
-                "order_id": order_id,
+                "order_id": f"THN-{i + 1:06d}",
                 "timestamp": ts.isoformat(),
                 "dark_store_id": store_id,
+                "platform": store_platforms[store_id],
                 "origin_node_id": origin_node,
                 "delivery_node_id": delivery_node,
                 "origin_lat": G.nodes[origin_node]["y"],
@@ -238,7 +334,7 @@ def generate_orders(G: nx.MultiDiGraph, store_entries: list[tuple[int, str]]) ->
             }
         )
 
-        if (i + 1) % 2000 == 0:
+        if (i + 1) % 25000 == 0:
             print(f"  Generated {i + 1:,} / {NUM_ORDERS:,} orders")
 
     return pd.DataFrame(rows)
@@ -252,9 +348,9 @@ def main() -> None:
     G = download_graph()
     store_entries = pick_dark_stores(G)
     print("Dark stores:")
-    for node, name in store_entries:
+    for node, name, platform in store_entries:
         y, x = G.nodes[node]["y"], G.nodes[node]["x"]
-        print(f"  {name}: ({y:.4f}, {x:.4f})")
+        print(f"  [{platform}] {name}: ({y:.4f}, {x:.4f})")
 
     export_network_geojson(G, DATA_DIR / "thane_network.geojson")
     export_dark_stores(G, store_entries, MODELS_DIR / "dark_stores.json")
@@ -268,7 +364,9 @@ def main() -> None:
     df = generate_orders(G, store_entries)
     out_path = DATA_DIR / "thane_orders.csv"
     df.to_csv(out_path, index=False)
+    export_simulation_meta(MODELS_DIR / "simulation_meta.json", len(store_entries), len(df))
     print(f"Saved {len(df):,} orders → {out_path}")
+    print(f"  ≈ {len(df) / DAYS:,.0f} orders/day (target {DAILY_ORDERS_TARGET:,}/day)")
     print(f"SLA breach rate: {df['sla_breach'].mean():.1%}")
 
 
