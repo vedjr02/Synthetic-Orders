@@ -1,9 +1,10 @@
 "use client";
 
-import type { Metrics, PredictSurgeResult } from "@/lib/api";
+import type { Metrics, PredictSurgeResult, SimulationMeta } from "@/lib/api";
 
 interface Props {
   metrics: Metrics | null;
+  simulation: SimulationMeta | null;
   prediction: PredictSurgeResult | null;
   loading?: boolean;
   error?: string | null;
@@ -20,7 +21,7 @@ function Metric({ label, value, accent }: { label: string; value: string; accent
   );
 }
 
-export default function MetricsPanel({ metrics, prediction, loading, error }: Props) {
+export default function MetricsPanel({ metrics, simulation, prediction, loading, error }: Props) {
   if (error) {
     return (
       <div className="glass" style={{ padding: "18px 20px", borderColor: "rgba(248,113,113,0.3)" }}>
@@ -65,6 +66,13 @@ export default function MetricsPanel({ metrics, prediction, loading, error }: Pr
           value={metrics ? `${(metrics.sla_breach_rate * 100).toFixed(1)}%` : "—"}
         />
       </div>
+
+      {simulation && (
+        <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: 12, lineHeight: 1.5 }}>
+          {simulation.num_dark_stores} dark stores · ~
+          {simulation.daily_orders_target.toLocaleString()} orders/day (Thane benchmark)
+        </p>
+      )}
 
       {prediction && (
         <div
