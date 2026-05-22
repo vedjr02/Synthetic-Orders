@@ -5,10 +5,12 @@ import DashboardMap from "@/components/DashboardMap";
 import ControlPanel from "@/components/ControlPanel";
 import MetricsPanel from "@/components/MetricsPanel";
 import {
+  fetchBounds,
   fetchDarkStores,
   fetchMetrics,
   fetchOrders,
   predictSurge,
+  type CityBounds,
   type DarkStore,
   type Metrics,
   type OrderPoint,
@@ -16,10 +18,9 @@ import {
   type Weather,
 } from "@/lib/api";
 
-const THANE_CENTER = { longitude: 72.9781, latitude: 19.2183, zoom: 12.2 };
-
 export default function HomePage() {
   const [weather, setWeather] = useState<Weather>("Clear");
+  const [bounds, setBounds] = useState<CityBounds | null>(null);
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [orders, setOrders] = useState<OrderPoint[]>([]);
   const [stores, setStores] = useState<DarkStore[]>([]);
@@ -31,14 +32,16 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     try {
-      const [m, o, s] = await Promise.all([
+      const [m, o, s, b] = await Promise.all([
         fetchMetrics(w),
         fetchOrders(w),
         fetchDarkStores(),
+        fetchBounds(),
       ]);
       setMetrics(m);
       setOrders(o);
       setStores(s);
+      setBounds(b);
 
       if (s.length >= 2) {
         const origin = s[0];
@@ -80,7 +83,7 @@ export default function HomePage() {
       }}
     >
       <DashboardMap
-        initialViewState={THANE_CENTER}
+        bounds={bounds}
         orders={surgeByPoint}
         stores={stores}
         weather={weather}
@@ -106,7 +109,7 @@ export default function HomePage() {
             Surge & SLA Engine
           </h1>
           <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: 6 }}>
-            10-min grocery delivery · Mumbai monsoon simulation
+            10-min grocery · whole Thane city · monsoon surge sim
           </p>
         </div>
 
