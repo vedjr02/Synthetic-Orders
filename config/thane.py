@@ -15,16 +15,9 @@ THANE_CITY_CENTER: dict[str, float] = {
     "longitude": 72.978,
 }
 
-# Dark-store zones — one hub per quadrant for city-wide coverage
-THANE_STORE_ZONES: list[dict] = [
-    {"id": 1, "name": "Thane West", "pred": "nw"},
-    {"id": 2, "name": "Thane East", "pred": "ne"},
-    {"id": 3, "name": "Wagle / Naupada", "pred": "sw"},
-    {"id": 4, "name": "Ghodbunder Road", "pred": "se"},
-]
-
 
 def zone_predicate(zone_key: str, lat: float, lon: float, mid_lat: float, mid_lon: float) -> bool:
+    """Legacy quadrant helper (kept for tests)."""
     if zone_key == "nw":
         return lat >= mid_lat and lon < mid_lon
     if zone_key == "ne":
@@ -32,3 +25,14 @@ def zone_predicate(zone_key: str, lat: float, lon: float, mid_lat: float, mid_lo
     if zone_key == "sw":
         return lat < mid_lat and lon < mid_lon
     return lat < mid_lat and lon >= mid_lon
+
+
+def node_in_bbox(
+    lat: float,
+    lon: float,
+    south: float,
+    north: float,
+    west: float,
+    east: float,
+) -> bool:
+    return south <= lat <= north and west <= lon <= east
