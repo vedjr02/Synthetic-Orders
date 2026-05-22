@@ -1,0 +1,16 @@
+{
+  "city": "Thane",
+  "state": "Maharashtra",
+  "country": "India",
+  "bbox": {
+    "north": 19.295,
+    "south": 19.055,
+    "east": 73.085,
+    "west": 72.905
+  },
+  "center": {
+    "latitude": 19.197,
+    "longitude": 72.978
+  },
+  "description": "Thane Municipal Corporation — used for map fit and OSM graph clip"
+}
