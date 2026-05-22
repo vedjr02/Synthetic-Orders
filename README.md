@@ -2,10 +2,25 @@
 
 10-minute grocery delivery surge pricing and SLA prediction engine for **Thane, Mumbai, India**. Built on the FlowCast architecture pattern with 100% free infrastructure (OSM, OSMnx, CARTO basemaps — no Mapbox/Google Maps API keys).
 
+## What is this project?
+
+Imagine Zepto or Blinkit operating only in **Thane city**. This engine simulates that world:
+
+1. **Dark stores** — 4 grocery hubs, one in each quadrant of Thane (West, East, Wagle, Ghodbunder).
+2. **Synthetic orders** — 10,000 fake deliveries over 14 days, routed on real OpenStreetMap roads.
+3. **ML models** — predict delivery ETA and the chance of missing the **10-minute SLA**.
+4. **Surge pricing** — when SLA risk rises (rain, rush hour, low riders), the price multiplier goes up.
+5. **Dashboard** — a live map of Thane showing order heat, surge zones, and monsoon weather simulation.
+
+It is a portfolio demo of **Q-Commerce logistics intelligence**, not a production app.
+
 ## Folder Structure
 
 ```
 Synthetic Orders/
+├── config/
+│   ├── thane.py              # Thane city bbox + zone definitions
+│   └── thane_bounds.json     # Map fit bounds (committed)
 ├── data_pipeline.py          # Phase 1: OSM download + synthetic orders
 ├── train_model.py            # Phase 2: XGBoost training + joblib serialization
 ├── main.py                   # Phase 3: FastAPI backend
