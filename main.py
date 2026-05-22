@@ -219,6 +219,20 @@ def get_dark_stores():
     return {"dark_stores": state.dark_stores}
 
 
+@app.get("/api/simulation-meta")
+def get_simulation_meta():
+    """Research-backed simulation parameters."""
+    path = MODELS_DIR / "simulation_meta.json"
+    fallback = CONFIG_DIR / "thane_reality.py"
+    if path.exists():
+        return json.loads(path.read_text())
+    return {
+        "num_dark_stores": 37,
+        "daily_orders_target": 21460,
+        "note": "Run data_pipeline.py to generate simulation_meta.json",
+    }
+
+
 @app.get("/api/bounds")
 def get_bounds():
     """City bounding box for map auto-fit."""
@@ -305,8 +319,12 @@ def get_metrics(weather: str = "Clear"):
     df = state.orders_df
     recent = df[df["weather_condition"] == weather] if weather in WEATHER_SEVERITY else df
 
-    # Simulate live slice: last 2 hours of synthetic day
-    active_orders = int(len(recent) * 0.08) + np.random.randint(12, 48)
+    # Simulate live 2-hour peak slice (~12% of daily volume during rush)
+    daily_base = 21_500
+    meta_path = MODELS_DIR / "simulation_meta.json"
+    if meta_path.exists():
+        daily_base = json.loads(meta_path.read_text()).get("daily_orders_target", daily_base)
+    active_orders = int(daily_base * 0.12) + int(np.random.randint(-200, 200))
     fleet_size = int(recent["active_rider_count"].median()) if len(recent) else 20
     utilization = round(min(0.98, active_orders / max(fleet_size, 1)), 3)
 
