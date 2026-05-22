@@ -15,12 +15,27 @@ export interface Metrics {
   total_orders_in_dataset: number;
 }
 
+export interface CityBounds {
+  city: string;
+  bbox: {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  };
+  center?: {
+    latitude: number;
+    longitude: number;
+  };
+}
+
 export interface DarkStore {
   dark_store_id: number;
   node_id: number;
   lat: number;
   lon: number;
   name: string;
+  zone?: string;
 }
 
 export interface OrderPoint {
@@ -34,6 +49,7 @@ export interface OrderPoint {
   weather_condition: string;
   order_value_inr: number;
   hour_of_day: number;
+  dark_store_id?: number;
 }
 
 export interface PredictSurgeResult {
@@ -45,13 +61,19 @@ export interface PredictSurgeResult {
   weather_factor: number;
 }
 
+export async function fetchBounds(): Promise<CityBounds> {
+  const res = await fetch(`${API_BASE}/api/bounds`);
+  if (!res.ok) throw new Error("Failed to load city bounds");
+  return res.json();
+}
+
 export async function fetchMetrics(weather: Weather): Promise<Metrics> {
   const res = await fetch(`${API_BASE}/api/metrics?weather=${encodeURIComponent(weather)}`);
   if (!res.ok) throw new Error("Failed to load metrics");
   return res.json();
 }
 
-export async function fetchOrders(weather: Weather, limit = 800): Promise<OrderPoint[]> {
+export async function fetchOrders(weather: Weather, limit = 2000): Promise<OrderPoint[]> {
   const res = await fetch(
     `${API_BASE}/api/orders?limit=${limit}&weather=${encodeURIComponent(weather)}`
   );
