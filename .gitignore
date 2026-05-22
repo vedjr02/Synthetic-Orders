@@ -1,0 +1,29 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Generated artifacts (run data_pipeline.py + train_model.py)
+cache/
+data/thane_orders.csv
+data/thane_network.geojson
+models/thane_graph.joblib
+models/eta_regressor.joblib
+models/sla_classifier.joblib
+
+# Node
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Legacy large model binaries
+models/*.pkl
