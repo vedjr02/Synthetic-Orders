@@ -26,6 +26,7 @@ logger = logging.getLogger("thane-surge")
 ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT / "data"
 MODELS_DIR = ROOT / "models"
+CONFIG_DIR = ROOT / "config"
 
 WEATHER_SEVERITY = {"Clear": 0, "Rain": 1, "Heavy Rain": 2}
 WEATHER_FACTOR = {"Clear": 1.0, "Rain": 1.15, "Heavy Rain": 1.35}
@@ -43,6 +44,7 @@ class AppState:
     dark_stores: list = []
     orders_df: Optional[Any] = None
     network_geojson: Optional[dict] = None
+    city_bounds: Optional[dict] = None
     meta: dict = {}
 
 
@@ -85,6 +87,14 @@ def _load_artifacts() -> None:
             "active_rider_count",
             "base_travel_time_min",
         ]
+
+    bounds_path = MODELS_DIR / "thane_bounds.json"
+    if not bounds_path.exists():
+        bounds_path = CONFIG_DIR / "thane_bounds.json"
+    if bounds_path.exists():
+        state.city_bounds = json.loads(bounds_path.read_text())
+    else:
+        state.city_bounds = None
 
     logger.info("Loaded models, graph (%d nodes), %d orders", state.graph.number_of_nodes(), len(state.orders_df))
 
@@ -209,14 +219,35 @@ def get_dark_stores():
     return {"dark_stores": state.dark_stores}
 
 
+@app.get("/api/bounds")
+def get_bounds():
+    """City bounding box for map auto-fit."""
+    if state.city_bounds:
+        return state.city_bounds
+    fallback = CONFIG_DIR / "thane_bounds.json"
+    if fallback.exists():
+        return json.loads(fallback.read_text())
+    raise HTTPException(status_code=503, detail="City bounds not configured")
+
+
 @app.get("/api/orders")
-def get_orders(limit: int = 500, weather: Optional[str] = None):
-    """Sample orders for map visualization."""
+def get_orders(limit: int = 2000, weather: Optional[str] = None):
+    """Sample orders evenly across dark-store zones for map visualization."""
     _ensure_ready()
     df = state.orders_df.copy()
     if weather:
         df = df[df["weather_condition"] == weather]
-    sample = df.sample(n=min(limit, len(df)), random_state=42)
+
+    if "dark_store_id" in df.columns and df["dark_store_id"].nunique() > 1:
+        per_store = max(limit // df["dark_store_id"].nunique(), 50)
+        parts = [
+            g.sample(n=min(per_store, len(g)), random_state=42)
+            for _, g in df.groupby("dark_store_id")
+        ]
+        sample = pd.concat(parts).head(limit)
+    else:
+        sample = df.sample(n=min(limit, len(df)), random_state=42)
+
     records = sample[
         [
             "order_id",
@@ -229,6 +260,7 @@ def get_orders(limit: int = 500, weather: Optional[str] = None):
             "weather_condition",
             "order_value_inr",
             "hour_of_day",
+            "dark_store_id",
         ]
     ].to_dict(orient="records")
     return {"orders": records, "count": len(records)}
