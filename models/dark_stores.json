@@ -1,34 +1,335 @@
 [
   {
     "dark_store_id": 1,
-    "node_id": 8495434483,
-    "lat": 19.2233254,
-    "lon": 72.9677433,
-    "name": "Thane West",
-    "zone": "Thane West"
+    "node_id": 4367349641,
+    "lat": 19.2184026,
+    "lon": 72.9567221,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
   },
   {
     "dark_store_id": 2,
-    "node_id": 13260764798,
-    "lat": 19.2366893,
-    "lon": 73.051582,
-    "name": "Thane East",
-    "zone": "Thane East"
+    "node_id": 5913743699,
+    "lat": 19.259852,
+    "lon": 72.9698339,
+    "name": "Blinkit \u00b7 Ghodbunder Road",
+    "zone": "Ghodbunder Road",
+    "platform": "Blinkit"
   },
   {
     "dark_store_id": 3,
-    "node_id": 1644089925,
-    "lat": 19.1187602,
-    "lon": 72.9376399,
-    "name": "Wagle / Naupada",
-    "zone": "Wagle / Naupada"
+    "node_id": 414730069,
+    "lat": 19.2203082,
+    "lon": 72.9704167,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
   },
   {
     "dark_store_id": 4,
-    "node_id": 338513956,
-    "lat": 19.1158292,
-    "lon": 73.0269882,
-    "name": "Ghodbunder Road",
-    "zone": "Ghodbunder Road"
+    "node_id": 2440275234,
+    "lat": 19.2120054,
+    "lon": 72.9805553,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 5,
+    "node_id": 2227589478,
+    "lat": 19.2499628,
+    "lon": 72.977024,
+    "name": "Swiggy Instamart \u00b7 Ghodbunder Road",
+    "zone": "Ghodbunder Road",
+    "platform": "Swiggy Instamart"
+  },
+  {
+    "dark_store_id": 6,
+    "node_id": 7380246313,
+    "lat": 19.2003346,
+    "lon": 72.9900895,
+    "name": "Swiggy Instamart \u00b7 Majiwada",
+    "zone": "Majiwada",
+    "platform": "Swiggy Instamart"
+  },
+  {
+    "dark_store_id": 7,
+    "node_id": 3742237829,
+    "lat": 19.1835911,
+    "lon": 73.0469408,
+    "name": "Swiggy Instamart \u00b7 Thane East",
+    "zone": "Thane East",
+    "platform": "Swiggy Instamart"
+  },
+  {
+    "dark_store_id": 8,
+    "node_id": 4367360123,
+    "lat": 19.2175118,
+    "lon": 72.9673468,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 9,
+    "node_id": 10936278561,
+    "lat": 19.2017926,
+    "lon": 72.9994056,
+    "name": "Swiggy Instamart \u00b7 Majiwada",
+    "zone": "Majiwada",
+    "platform": "Swiggy Instamart"
+  },
+  {
+    "dark_store_id": 10,
+    "node_id": 4233141025,
+    "lat": 19.184641,
+    "lon": 73.0515533,
+    "name": "Swiggy Instamart \u00b7 Thane East",
+    "zone": "Thane East",
+    "platform": "Swiggy Instamart"
+  },
+  {
+    "dark_store_id": 11,
+    "node_id": 2242393032,
+    "lat": 19.1547974,
+    "lon": 73.046827,
+    "name": "Swiggy Instamart \u00b7 Kalwa",
+    "zone": "Kalwa",
+    "platform": "Swiggy Instamart"
+  },
+  {
+    "dark_store_id": 12,
+    "node_id": 2245076018,
+    "lat": 19.1241146,
+    "lon": 72.9292258,
+    "name": "Swiggy Instamart \u00b7 Wagle Estate",
+    "zone": "Wagle Estate",
+    "platform": "Swiggy Instamart"
+  },
+  {
+    "dark_store_id": 13,
+    "node_id": 1879817409,
+    "lat": 19.1206427,
+    "lon": 72.9305791,
+    "name": "Swiggy Instamart \u00b7 Wagle Estate",
+    "zone": "Wagle Estate",
+    "platform": "Swiggy Instamart"
+  },
+  {
+    "dark_store_id": 14,
+    "node_id": 2230881784,
+    "lat": 19.2154265,
+    "lon": 72.9647996,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 15,
+    "node_id": 1960734918,
+    "lat": 19.2201646,
+    "lon": 72.9622905,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 16,
+    "node_id": 5913743694,
+    "lat": 19.2507142,
+    "lon": 72.9736283,
+    "name": "Blinkit \u00b7 Ghodbunder Road",
+    "zone": "Ghodbunder Road",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 17,
+    "node_id": 7279827786,
+    "lat": 19.1787777,
+    "lon": 73.0430598,
+    "name": "Swiggy Instamart \u00b7 Thane East",
+    "zone": "Thane East",
+    "platform": "Swiggy Instamart"
+  },
+  {
+    "dark_store_id": 18,
+    "node_id": 2228292541,
+    "lat": 19.2087911,
+    "lon": 72.955008,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 19,
+    "node_id": 1388374475,
+    "lat": 19.1479356,
+    "lon": 72.9280233,
+    "name": "Swiggy Instamart \u00b7 Shilphata",
+    "zone": "Shilphata",
+    "platform": "Swiggy Instamart"
+  },
+  {
+    "dark_store_id": 20,
+    "node_id": 13821851267,
+    "lat": 19.2243077,
+    "lon": 72.9729409,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 21,
+    "node_id": 619143457,
+    "lat": 19.2086127,
+    "lon": 72.9935793,
+    "name": "Swiggy Instamart \u00b7 Majiwada",
+    "zone": "Majiwada",
+    "platform": "Swiggy Instamart"
+  },
+  {
+    "dark_store_id": 22,
+    "node_id": 2230881882,
+    "lat": 19.2163923,
+    "lon": 72.9615462,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 23,
+    "node_id": 5544516311,
+    "lat": 19.0729089,
+    "lon": 73.0102005,
+    "name": "Swiggy Instamart \u00b7 Mumbra",
+    "zone": "Mumbra",
+    "platform": "Swiggy Instamart"
+  },
+  {
+    "dark_store_id": 24,
+    "node_id": 2228429173,
+    "lat": 19.2023356,
+    "lon": 72.9592446,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 25,
+    "node_id": 13805626020,
+    "lat": 19.2564109,
+    "lon": 72.9712097,
+    "name": "Blinkit \u00b7 Ghodbunder Road",
+    "zone": "Ghodbunder Road",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 26,
+    "node_id": 4467057269,
+    "lat": 19.2101048,
+    "lon": 72.969441,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 27,
+    "node_id": 2242392740,
+    "lat": 19.1479742,
+    "lon": 73.0432894,
+    "name": "Swiggy Instamart \u00b7 Kalwa",
+    "zone": "Kalwa",
+    "platform": "Swiggy Instamart"
+  },
+  {
+    "dark_store_id": 28,
+    "node_id": 2224872006,
+    "lat": 19.1891997,
+    "lon": 73.0420621,
+    "name": "Swiggy Instamart \u00b7 Thane East",
+    "zone": "Thane East",
+    "platform": "Swiggy Instamart"
+  },
+  {
+    "dark_store_id": 29,
+    "node_id": 8592017245,
+    "lat": 19.264358,
+    "lon": 72.978586,
+    "name": "Blinkit \u00b7 Ghodbunder Road",
+    "zone": "Ghodbunder Road",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 30,
+    "node_id": 13651691243,
+    "lat": 19.2118927,
+    "lon": 72.9623862,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 31,
+    "node_id": 13390341736,
+    "lat": 19.2068769,
+    "lon": 73.0045799,
+    "name": "Swiggy Instamart \u00b7 Majiwada",
+    "zone": "Majiwada",
+    "platform": "Swiggy Instamart"
+  },
+  {
+    "dark_store_id": 32,
+    "node_id": 2228293037,
+    "lat": 19.2121807,
+    "lon": 72.9553671,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 33,
+    "node_id": 3796391503,
+    "lat": 19.2189997,
+    "lon": 72.9508361,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 34,
+    "node_id": 9925314958,
+    "lat": 19.2162444,
+    "lon": 72.9739944,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 35,
+    "node_id": 13418006665,
+    "lat": 19.199238,
+    "lon": 72.9713737,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 36,
+    "node_id": 8495434483,
+    "lat": 19.2233254,
+    "lon": 72.9677433,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
+  },
+  {
+    "dark_store_id": 37,
+    "node_id": 8495434519,
+    "lat": 19.2264531,
+    "lon": 72.9672765,
+    "name": "Blinkit \u00b7 Thane West",
+    "zone": "Thane West",
+    "platform": "Blinkit"
   }
 ]

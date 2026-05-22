@@ -1,0 +1,16 @@
+{
+  "research_basis": "QuickCommerceMap Thane 37 stores; ~580 orders/store/day",
+  "sources": [
+    "https://quickcommercemap.com/cities/thane",
+    "https://www.moneycontrol.com/news/business/startup/blinkit-zepto-and-swiggy-instamart-scale-to-over-4-million-daily-orders-in-march-more-than-double-yoy-13012435.html"
+  ],
+  "num_dark_stores": 37,
+  "daily_orders_target": 21460,
+  "simulation_days": 14,
+  "total_orders_generated": 300440,
+  "city_fleet_riders_peak": 518,
+  "platforms": {
+    "Blinkit": 22,
+    "Swiggy Instamart": 15
+  }
+}
