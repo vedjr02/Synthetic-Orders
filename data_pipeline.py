@@ -15,6 +15,8 @@ import numpy as np
 import osmnx as ox
 import pandas as pd
 
+from config.thane import THANE_CITY_BBOX, THANE_STORE_ZONES, zone_predicate
+
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
@@ -23,7 +25,7 @@ DATA_DIR = ROOT / "data"
 MODELS_DIR = ROOT / "models"
 CACHE_DIR = ROOT / "cache"
 
-PLACE = "Thane, Maharashtra, India"
+PLACE = "Thane city, Maharashtra, India"  # label only; graph uses THANE_CITY_BBOX
 NUM_DARK_STORES = 4
 NUM_ORDERS = 10_000
 DAYS = 14
@@ -41,43 +43,56 @@ ox.settings.cache_folder = str(CACHE_DIR)
 
 
 def download_graph() -> nx.MultiDiGraph:
-    print(f"Downloading drive network for {PLACE} …")
-    G = ox.graph_from_place(PLACE, network_type="drive", simplify=True)
+    b = THANE_CITY_BBOX
+    print(f"Downloading drive network for {PLACE} (city bbox) …")
+    G = ox.graph_from_bbox(
+        (b["west"], b["south"], b["east"], b["north"]),
+        network_type="drive",
+        simplify=True,
+    )
     G = ox.add_edge_speeds(G)
     G = ox.add_edge_travel_times(G)
     print(f"Graph: {G.number_of_nodes()} nodes, {G.number_of_edges()} edges")
     return G
 
 
-def pick_dark_stores(G: nx.MultiDiGraph, k: int = NUM_DARK_STORES) -> list[int]:
-    """Select k central nodes (high degree) as dark-store hubs."""
+def pick_dark_stores(G: nx.MultiDiGraph, k: int = NUM_DARK_STORES) -> list[tuple[int, str]]:
+    """Place one dark store per city quadrant for full Thane coverage."""
+    b = THANE_CITY_BBOX
+    mid_lat = (b["north"] + b["south"]) / 2
+    mid_lon = (b["east"] + b["west"]) / 2
     degrees = dict(G.degree())
-    sorted_nodes = sorted(degrees, key=degrees.get, reverse=True)
-    # Spread stores: pick from top quartile with minimum separation
-    candidates = sorted_nodes[: max(k * 8, 50)]
-    rng = random.Random(RANDOM_SEED)
-    rng.shuffle(candidates)
-    selected: list[int] = []
-    for node in candidates:
-        if len(selected) >= k:
-            break
-        if not selected:
-            selected.append(node)
+
+    selected: list[tuple[int, str]] = []
+    for zone in THANE_STORE_ZONES[:k]:
+        candidates = [
+            n
+            for n in G.nodes
+            if zone_predicate(zone["pred"], G.nodes[n]["y"], G.nodes[n]["x"], mid_lat, mid_lon)
+        ]
+        if not candidates:
+            print(f"  Warning: no nodes in zone {zone['name']}, skipping")
             continue
-        too_close = any(
-            ox.distance.great_circle(
-                G.nodes[node]["y"],
-                G.nodes[node]["x"],
-                G.nodes[s]["y"],
-                G.nodes[s]["x"],
-            )
-            < 800
-            for s in selected
-        )
-        if not too_close:
-            selected.append(node)
+        # Prefer well-connected nodes near the zone centroid
+        zlats = [G.nodes[n]["y"] for n in candidates]
+        zlons = [G.nodes[n]["x"] for n in candidates]
+        z_cent_lat, z_cent_lon = float(np.mean(zlats)), float(np.mean(zlons))
+
+        def score(node: int) -> float:
+            y, x = G.nodes[node]["y"], G.nodes[node]["x"]
+            dist = ox.distance.great_circle(y, x, z_cent_lat, z_cent_lon)
+            return degrees.get(node, 0) - dist / 500.0
+
+        best = max(candidates, key=score)
+        selected.append((best, zone["name"]))
+
     while len(selected) < k:
-        selected.append(rng.choice(sorted_nodes[:100]))
+        remaining = [n for n in G.nodes if n not in {s[0] for s in selected}]
+        if not remaining:
+            break
+        fallback = max(remaining, key=lambda n: degrees.get(n, 0))
+        selected.append((fallback, f"Dark Store {len(selected) + 1}"))
+
     return selected[:k]
 
 
@@ -140,27 +155,41 @@ def export_network_geojson(G: nx.MultiDiGraph, path: Path) -> None:
     print(f"Saved network GeoJSON → {path}")
 
 
-def export_dark_stores(G: nx.MultiDiGraph, store_ids: list[int], path: Path) -> None:
+def export_dark_stores(G: nx.MultiDiGraph, store_entries: list[tuple[int, str]], path: Path) -> None:
     stores = []
-    for idx, node in enumerate(store_ids, start=1):
+    for idx, (node, name) in enumerate(store_entries, start=1):
         stores.append(
             {
                 "dark_store_id": idx,
                 "node_id": int(node),
                 "lat": float(G.nodes[node]["y"]),
                 "lon": float(G.nodes[node]["x"]),
-                "name": f"Dark Store {idx}",
+                "name": name,
+                "zone": name,
             }
         )
     path.write_text(json.dumps(stores, indent=2))
     print(f"Saved dark stores → {path}")
 
 
-def generate_orders(G: nx.MultiDiGraph, store_ids: list[int]) -> pd.DataFrame:
+def export_city_bounds(path: Path) -> None:
+    payload = {
+        "city": "Thane",
+        "bbox": THANE_CITY_BBOX,
+        "center": {
+            "latitude": (THANE_CITY_BBOX["north"] + THANE_CITY_BBOX["south"]) / 2,
+            "longitude": (THANE_CITY_BBOX["east"] + THANE_CITY_BBOX["west"]) / 2,
+        },
+    }
+    path.write_text(json.dumps(payload, indent=2))
+    print(f"Saved city bounds → {path}")
+
+
+def generate_orders(G: nx.MultiDiGraph, store_entries: list[tuple[int, str]]) -> pd.DataFrame:
     rng = np.random.default_rng(RANDOM_SEED)
     start_date = datetime(2025, 6, 1, 6, 0, 0)
 
-    store_nodes = {i + 1: nid for i, nid in enumerate(store_ids)}
+    store_nodes = {i + 1: nid for i, (nid, _) in enumerate(store_entries)}
     delivery_pools = {
         sid: nodes_within_radius(G, nid, DELIVERY_RADIUS_M) for sid, nid in store_nodes.items()
     }
@@ -221,18 +250,22 @@ def main() -> None:
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
     G = download_graph()
-    store_ids = pick_dark_stores(G)
-    print(f"Dark store nodes: {store_ids}")
+    store_entries = pick_dark_stores(G)
+    print("Dark stores:")
+    for node, name in store_entries:
+        y, x = G.nodes[node]["y"], G.nodes[node]["x"]
+        print(f"  {name}: ({y:.4f}, {x:.4f})")
 
     export_network_geojson(G, DATA_DIR / "thane_network.geojson")
-    export_dark_stores(G, store_ids, MODELS_DIR / "dark_stores.json")
+    export_dark_stores(G, store_entries, MODELS_DIR / "dark_stores.json")
+    export_city_bounds(MODELS_DIR / "thane_bounds.json")
 
     # Persist graph for backend routing (pickle via joblib in pipeline)
     import joblib
 
     joblib.dump(G, MODELS_DIR / "thane_graph.joblib")
 
-    df = generate_orders(G, store_ids)
+    df = generate_orders(G, store_entries)
     out_path = DATA_DIR / "thane_orders.csv"
     df.to_csv(out_path, index=False)
     print(f"Saved {len(df):,} orders → {out_path}")
