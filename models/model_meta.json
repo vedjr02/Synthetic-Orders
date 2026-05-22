@@ -1,0 +1,21 @@
+{
+  "feature_columns": [
+    "hour_of_day",
+    "day_of_week",
+    "weather_severity",
+    "distance_m",
+    "active_rider_count",
+    "base_travel_time_min"
+  ],
+  "eta_mae_min": 0.2778,
+  "sla_accuracy": 0.9825,
+  "sla_auc": 0.9935,
+  "weather_factor": {
+    "Clear": 1.0,
+    "Rain": 1.15,
+    "Heavy Rain": 1.35
+  },
+  "base_surge": 1.0,
+  "surge_formula": "Base * (1 + SLA_Breach_Risk) * Weather_Factor",
+  "model_backend": "sklearn_hist_gradient_boosting"
+}

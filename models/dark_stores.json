@@ -1,0 +1,30 @@
+[
+  {
+    "dark_store_id": 1,
+    "node_id": 341823480,
+    "lat": 19.0907683,
+    "lon": 73.0063562,
+    "name": "Dark Store 1"
+  },
+  {
+    "dark_store_id": 2,
+    "node_id": 340363228,
+    "lat": 19.1883118,
+    "lon": 72.9771305,
+    "name": "Dark Store 2"
+  },
+  {
+    "dark_store_id": 3,
+    "node_id": 338282627,
+    "lat": 19.1110733,
+    "lon": 73.021765,
+    "name": "Dark Store 3"
+  },
+  {
+    "dark_store_id": 4,
+    "node_id": 11029610739,
+    "lat": 19.6335072,
+    "lon": 73.40859,
+    "name": "Dark Store 4"
+  }
+]
