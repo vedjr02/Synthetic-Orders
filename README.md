@@ -6,8 +6,8 @@
 
 Imagine Zepto or Blinkit operating only in **Thane city**. This engine simulates that world:
 
-1. **Dark stores** — 4 grocery hubs, one in each quadrant of Thane (West, East, Wagle, Ghodbunder).
-2. **Synthetic orders** — 10,000 fake deliveries over 14 days, routed on real OpenStreetMap roads.
+1. **Dark stores** — **37 grocery hubs** across 9 Thane neighbourhoods (22 Blinkit + 15 Instamart, per [QuickCommerceMap](https://quickcommercemap.com/cities/thane)).
+2. **Synthetic orders** — **~21,500 orders/day** × 14 days ≈ **300k deliveries**, routed on real OSM roads with lunch/evening demand peaks.
 3. **ML models** — predict delivery ETA and the chance of missing the **10-minute SLA**.
 4. **Surge pricing** — when SLA risk rises (rain, rush hour, low riders), the price multiplier goes up.
 5. **Dashboard** — a live map of Thane showing order heat, surge zones, and monsoon weather simulation.
