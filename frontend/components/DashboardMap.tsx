@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import DeckGL from "@deck.gl/react";
 import { WebMercatorViewport } from "@deck.gl/core";
 import { HexagonLayer } from "@deck.gl/aggregation-layers";
-import { PolygonLayer, ScatterplotLayer, TextLayer } from "@deck.gl/layers";
+import { PolygonLayer, ScatterplotLayer } from "@deck.gl/layers";
 import Map from "react-map-gl/maplibre";
 import type { CityBounds, DarkStore, OrderPoint, Weather } from "@/lib/api";
 
@@ -85,9 +85,15 @@ export default function DashboardMap({ bounds, orders, stores, weather }: Props)
       stores.map((s) => ({
         position: [s.lon, s.lat] as [number, number],
         name: s.name,
+        platform: s.platform ?? "Blinkit",
       })),
     [stores]
   );
+
+  function platformColor(platform: string): [number, number, number, number] {
+    if (platform.includes("Instamart")) return [255, 140, 50, 240];
+    return [94, 234, 212, 240]; // Blinkit teal
+  }
 
   const boundaryData = useMemo(() => {
     if (!bounds) return [];
@@ -166,27 +172,13 @@ export default function DashboardMap({ bounds, orders, stores, weather }: Props)
         opacity: 1,
         stroked: true,
         filled: true,
-        radiusScale: 100,
-        radiusMinPixels: 12,
-        radiusMaxPixels: 20,
+        radiusScale: 60,
+        radiusMinPixels: 5,
+        radiusMaxPixels: 10,
         getPosition: (d) => d.position,
-        getFillColor: [94, 234, 212, 255],
-        getLineColor: [255, 255, 255, 230],
-        lineWidthMinPixels: 2,
-      }),
-      new TextLayer({
-        id: "store-labels",
-        data: storeData,
-        pickable: false,
-        getPosition: (d) => d.position,
-        getText: (d) => d.name,
-        getSize: 13,
-        getColor: [238, 242, 255, 230],
-        getPixelOffset: [0, -22],
-        fontFamily: "Inter, system-ui, sans-serif",
-        fontWeight: 600,
-        outlineWidth: 2,
-        outlineColor: [6, 8, 15, 200],
+        getFillColor: (d) => platformColor(d.platform),
+        getLineColor: [255, 255, 255, 200],
+        lineWidthMinPixels: 1,
       }),
     ],
     [orderData, storeData, boundaryData, weather]
