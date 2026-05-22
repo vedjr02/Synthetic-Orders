@@ -29,6 +29,14 @@ export interface CityBounds {
   };
 }
 
+export interface SimulationMeta {
+  num_dark_stores: number;
+  daily_orders_target: number;
+  total_orders_generated?: number;
+  simulation_days?: number;
+  research_basis?: string;
+}
+
 export interface DarkStore {
   dark_store_id: number;
   node_id: number;
@@ -36,6 +44,7 @@ export interface DarkStore {
   lon: number;
   name: string;
   zone?: string;
+  platform?: string;
 }
 
 export interface OrderPoint {
@@ -59,6 +68,12 @@ export interface PredictSurgeResult {
   distance_m: number;
   weather: string;
   weather_factor: number;
+}
+
+export async function fetchSimulationMeta(): Promise<SimulationMeta> {
+  const res = await fetch(`${API_BASE}/api/simulation-meta`);
+  if (!res.ok) throw new Error("Failed to load simulation meta");
+  return res.json();
 }
 
 export async function fetchBounds(): Promise<CityBounds> {
