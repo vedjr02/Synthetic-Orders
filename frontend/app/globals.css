@@ -77,3 +77,143 @@ a {
   font-size: 10px !important;
   opacity: 0.6;
 }
+
+/* Layout */
+.page-operations,
+.page-analytics {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.page-analytics {
+  overflow-y: auto;
+}
+
+.app-header {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 20px;
+}
+
+.app-header h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.view-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.view-tab {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-tab.active {
+  background: rgba(94, 234, 212, 0.15);
+  color: var(--accent);
+}
+
+.ops-sidebar {
+  position: fixed;
+  top: 90px;
+  left: 16px;
+  z-index: 10;
+  width: 340px;
+}
+
+/* Analytics */
+.analytics-shell {
+  padding: 90px 20px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.analytics-panel {
+  padding: 18px 20px;
+}
+
+.analytics-panel.wide {
+  margin-bottom: 16px;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+
+.overview-card {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-glass);
+}
+
+.leaderboard-wrap {
+  overflow-x: auto;
+}
+
+.leaderboard {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.leaderboard th {
+  text-align: left;
+  padding: 10px 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.leaderboard td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.leaderboard tbody tr:hover {
+  background: rgba(94, 234, 212, 0.04);
+}
+
+.weather-compact {
+  display: flex;
+  gap: 6px;
+}
+
+@media (max-width: 1100px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+  .overview-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
