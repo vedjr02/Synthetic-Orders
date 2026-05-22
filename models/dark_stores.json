@@ -1,30 +1,34 @@
 [
   {
     "dark_store_id": 1,
-    "node_id": 341823480,
-    "lat": 19.0907683,
-    "lon": 73.0063562,
-    "name": "Dark Store 1"
+    "node_id": 8495434483,
+    "lat": 19.2233254,
+    "lon": 72.9677433,
+    "name": "Thane West",
+    "zone": "Thane West"
   },
   {
     "dark_store_id": 2,
-    "node_id": 340363228,
-    "lat": 19.1883118,
-    "lon": 72.9771305,
-    "name": "Dark Store 2"
+    "node_id": 13260764798,
+    "lat": 19.2366893,
+    "lon": 73.051582,
+    "name": "Thane East",
+    "zone": "Thane East"
   },
   {
     "dark_store_id": 3,
-    "node_id": 338282627,
-    "lat": 19.1110733,
-    "lon": 73.021765,
-    "name": "Dark Store 3"
+    "node_id": 1644089925,
+    "lat": 19.1187602,
+    "lon": 72.9376399,
+    "name": "Wagle / Naupada",
+    "zone": "Wagle / Naupada"
   },
   {
     "dark_store_id": 4,
-    "node_id": 11029610739,
-    "lat": 19.6335072,
-    "lon": 73.40859,
-    "name": "Dark Store 4"
+    "node_id": 338513956,
+    "lat": 19.1158292,
+    "lon": 73.0269882,
+    "name": "Ghodbunder Road",
+    "zone": "Ghodbunder Road"
   }
 ]

@@ -1,0 +1,13 @@
+{
+  "city": "Thane",
+  "bbox": {
+    "north": 19.295,
+    "south": 19.055,
+    "east": 73.085,
+    "west": 72.905
+  },
+  "center": {
+    "latitude": 19.175,
+    "longitude": 72.995
+  }
+}
